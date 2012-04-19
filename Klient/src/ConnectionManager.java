@@ -10,7 +10,7 @@ public class ConnectionManager {
 
     private Socket socket;
     private InetAddress hostAddress;
-    private static final int PORT = 12346;
+    private static final int PORT = 22222;
 
     private DataOutputStream dataOutputStream;
     private DataInputStream dataInputStream;
@@ -66,8 +66,8 @@ public class ConnectionManager {
     public void send(String message) {
 	try {
 	    dataOutputStream = new DataOutputStream(socket.getOutputStream());
-	    dataOutputStream.writeChars(message);
-	    dataOutputStream.close();
+	    dataOutputStream.write(message.getBytes());
+	    // dataOutputStream.close();
 	    System.out.println("Data has been sent.");
 	} catch (IOException e) {
 	    System.out.println("Data sending error.");
@@ -76,12 +76,17 @@ public class ConnectionManager {
     }
 
     public String receive() {
-	String message = "";
+	String message;
+	byte[] b = new byte[256];
 	try {
 	    dataInputStream = new DataInputStream(socket.getInputStream());
-	    message = dataInputStream.readUTF();
-	    System.out.println("Data has been received.");
+	    dataInputStream.read(b);
+
+	    message = new String(b);
+
+	    System.out.println("Data has been received: " + message);
 	} catch (IOException e) {
+	    message = "";
 	    System.out.println("Data reciving error.");
 	    e.printStackTrace();
 	}

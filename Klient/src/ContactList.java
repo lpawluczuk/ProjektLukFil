@@ -1,8 +1,11 @@
+import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
@@ -22,11 +25,13 @@ public class ContactList extends JFrame implements ActionListener,
     private static final String LOGGED_AS_STRING = "Logged as: ";
     private static final String LOGOUT = "Logout";
     private static final String TALK = "Talk";
-    
+
     private ConnectionManager connectionManager;
     private DefaultListModel<String> listModel;
     private JList list;
-    
+
+    private ReceivingThread thread;
+
     public ContactList() {
 	super(CONTACT_LSIT_TITLE);
 
@@ -35,6 +40,9 @@ public class ContactList extends JFrame implements ActionListener,
 		MainPanel.hostAddress);
 	connectionManager.openConnection();
 	connectionManager.send(XML.createHelloMessage());
+
+	thread = new ReceivingThread();
+	// thread.run();
 
 	JPanel contentPane = new JPanel(new GridBagLayout());
 	setContentPane(contentPane);
@@ -108,6 +116,7 @@ public class ContactList extends JFrame implements ActionListener,
 	// logowania i puscic komunikat do servera, ze sie wyglogowujesz
 	if (actionCommand.equals(LOGOUT)) {
 	    connectionManager.closeConnection();
+	    thread.stopReceiving();
 	    this.dispose();
 	} else if (actionCommand.equals(TALK)) {
 	    ChatWindow chatWindow = new ChatWindow(listModel.getElementAt(list
@@ -120,6 +129,27 @@ public class ContactList extends JFrame implements ActionListener,
     @Override
     public void valueChanged(ListSelectionEvent e) {
 	// TODO Auto-generated method stub
+
+    }
+
+    private class ReceivingThread implements Runnable {
+	Thread runner;
+
+	public ReceivingThread() {
+	    runner = new Thread(this, "");
+	    runner.start();
+	}
+
+	public void stopReceiving() {
+	    runner.stop();
+	}
+
+	@Override
+	public void run() {
+	    while (true) {
+		connectionManager.receive();
+	    }
+	}
 
     }
 
